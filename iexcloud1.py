@@ -170,6 +170,72 @@ class DivvyData(object):
         
         return divvies_with_yield
 
+
+class OptionsData(object):
+    def __init__(self, symbol: str, api_key: str):
+        self.headers = {"Accept": "application/json", "Authorization": api_key}
+        self.api = 'https://sandbox.tradier.com{0}'
+        self.ratelimit_available = 120 #I think they say 120 calls/min?
+        self.symbol = symbol
+    
+    def quotes(self) -> dict:
+        """
+        Using the inputted quote, grab realtime prices. Used to calculate spreads.
+        """
+        url = self.api.format('/v1/markets/quotes')
+        params = {'symbols': self.symbol}
+        try:
+            r = requests.get(url, headers=self.headers, params=params)
+            self.ratelimit_available = int(r.headers['X-Ratelimit-Available'])
+            return r.json()['quotes']['quote']
+        except Exception as e:
+            raise Exception('Problem querying stock quotes. Status code: {0} Error: {1}'.format(r.status_code, e))
+    
+    def expirations(self) -> list:
+        """
+        Need to gather available options expirations before querying the chains.
+        """
+        url = self.api.format('/v1/markets/options/expirations')
+        params = {'symbol': self.symbol, 'includeAllRoots': 'true', 'strikes': 'false'}
+        try:
+            r = requests.get(url, headers=self.headers, params=params)
+            self.ratelimit_available = int(r.headers['X-Ratelimit-Available'])
+            return r.json()['expirations']['date']
+        except Exception as e:
+            raise Exception('Problem querying expirations for {0}. Status code: {1} Error: {2}'.format(self.symbol , r.status_code, e))
+    
+    def options_chain(self, expiration_date: str) -> list:
+        """
+        With the option expiration grab the options chain data.
+        """
+        url = self.api.format('/v1/markets/options/chains')
+        params = {'symbol': self.symbol, 'expiration': expiration_date, 'greeks': 'true'}
+        try:
+            r = requests.get(url, headers=self.headers, params=params)
+            self.ratelimit_available = int(r.headers['X-Ratelimit-Available'])
+            return r.json()['options']['option']
+        except Exception as e:
+            raise Exception('Problem querying options chain for {0}. Status code: {1} Error: {2}'.format(self.symbol , r.status_code, e))
+    
+    def gather_data(self) -> dict:
+        """
+        Gather and go through the options expirations to collect the chain data.
+        Compile it into a dict to be used for calculation.
+        """
+        _LOGGER.info('Grabbing current stock price and options expirations.')
+        compiled_data_for_symbol = {}
+        
+        expirations = self.expirations()
+        compiled_data_for_symbol['stock_quote'] = self.quotes()
+        compiled_data_for_symbol['options_data'] = []
+        
+        for expiration in tqdm.tqdm(expirations):
+            options_data = self.options_chain(expiration)
+            compiled_data_for_symbol['options_data'].append({expiration: options_data})
+        
+        return compiled_data_for_symbol
+
+
 if __name__ == '__main__':
     pass
     # dd_obj = DivvyData()
@@ -178,3 +244,9 @@ if __name__ == '__main__':
     # divvies_with_options = dd_obj.grab_options_expirations(quotes_dict=quotes_dict, raw_divvy_data=raw_divvy_data)
     # currency_conversion = dd_obj.currency_conversion(divvies_with_options)
     # divvies_with_yield = dd_obj.update_yields(currency_conversion=currency_conversion, divvies_with_options=divvies_with_options)
+    
+    # key_obj = APIKeys()
+    # tradier_api_key = key_obj.tradier_key()
+    
+    # queries_obj = OptionsData('SYMBOL', tradier_api_key)
+    # options_data = queries_obj.gather_data()

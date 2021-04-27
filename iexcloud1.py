@@ -11,6 +11,7 @@ import pickle
 import logging
 from pathlib import Path
 from os import getcwd
+from time import sleep
 from decimal import Decimal
 #For progress bar in CLI. pip install tqdm
 import tqdm
@@ -178,6 +179,17 @@ class OptionsData(object):
         self.ratelimit_available = 120 #I think they say 120 calls/min?
         self.symbol = symbol
     
+    def throttle(self):
+        """
+        Function to throttle requests when rate limit available starts getting low.
+        
+        Easier than handling rate limits.
+        """
+        if self.ratelimit_available < 20:
+            sleep(1)
+        
+        return
+    
     def quotes(self) -> dict:
         """
         Using the inputted quote, grab realtime prices. Used to calculate spreads.
@@ -224,12 +236,14 @@ class OptionsData(object):
         """
         _LOGGER.info('Grabbing current stock price and options expirations.')
         compiled_data_for_symbol = {}
+        self.throttle()
         
         expirations = self.expirations()
         compiled_data_for_symbol['stock_quote'] = self.quotes()
         compiled_data_for_symbol['options_data'] = []
         
         for expiration in tqdm.tqdm(expirations):
+            self.throttle()
             options_data = self.options_chain(expiration)
             compiled_data_for_symbol['options_data'].append({expiration: options_data})
         

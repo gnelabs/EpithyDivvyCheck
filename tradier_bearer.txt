@@ -1,1 +1,1 @@
-#Input Tradier sandbox bearer token here. Replace this line.
+#Input Tradier bearer token here. Replace this line.

@@ -357,7 +357,14 @@ class OptionsData(object):
                 self.throttle()
                 
                 options_chain = self.options_chain(expiration_date=expiration, symbol=k)
-                options_data[expiration] = options_chain
+                
+                #Kick out nonstandard sized contracts.
+                options_chain_standard_contract_size = []
+                for item in options_chain:
+                    if item['contract_size'] == 100:
+                        options_chain_standard_contract_size.append(item)
+                
+                options_data[expiration] = options_chain_standard_contract_size
             
             all_data[k]['options_data'] = options_data
             self.throttle()

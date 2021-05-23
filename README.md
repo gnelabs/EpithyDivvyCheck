@@ -10,6 +10,7 @@ Get free money from divvies by finding underpriced put options. To be used by ex
 * This tool searches for upcoming dividends roughly two weeks into the future.
 * This tool acts as a screener to find periodic opportunities for trade.
 * Calculations are pre-tax.
+* Some data is cached in the local directory for speed at daily refresh intervals.
 
 ## Prerequisites
 
@@ -61,3 +62,12 @@ significantly.
 * Trades are subject to pin risk. Trades should be closed manually if the underlying is near the strike on expiration.
 * Stock splits or unusual corporate events may not be accounted for. 
 * Trades are subject to slippage, which is not calculated in this tool.
+* Avoid nonstandard options contract wherever possible.
+
+## Known bugs (still investigating).
+
+* Nonstandard underlyings with symbols in them like share classes (i.e. BRK/B) don't seem to show up properly despite attempting to strip these out.
+These tend to show up as unrealistically generous yields because it's calculating off an unusual dividend not tracked with options.
+* Nonstandard sized options contracts (not 100:1 ratio) also aren't being stripped out properly messing up calculations.
+* Weird corporate events aren't being handled properly. I don't have code to handle these corner cases.
+

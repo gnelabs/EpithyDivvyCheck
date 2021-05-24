@@ -185,8 +185,6 @@ class DivvyData(object):
         """
         Convert currencies. Divvies reported by IEX are in their local currency, but quotes
         for American traded symbols are in USD.
-        
-        Returns a dict like {'CAD': Decimal('1.21294')}
         """
         _LOGGER.info('Querying IEX for currency exchange rates.')
         currency_pairs = []
@@ -252,7 +250,7 @@ class OptionsData(object):
         self.api = 'https://api.tradier.com{0}'
         self.ratelimit_available = 120 #I think they say 120 calls/min?
     
-    def throttle(self):
+    def throttle(self) -> None:
         """
         Function to throttle requests when rate limit available starts getting low.
         
@@ -562,6 +560,9 @@ if __name__ == '__main__':
                 _temp_list.append(v)
         free_money.append(_temp_list)
     
-    print('Profitable long conversion arbitrage trades using dividends:')
-    print(columnar(free_money, headers_sym, no_borders=True, patterns=[]))
+    if free_money:
+        print('Profitable long conversion arbitrage trades using dividends:')
+        print(columnar(free_money, headers_sym, no_borders=True, patterns=[]))
+    else:
+        print('There are no current arbetrage opportunities.')
     

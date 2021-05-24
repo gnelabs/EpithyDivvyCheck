@@ -71,3 +71,6 @@ These tend to show up as unrealistically generous yields because it's calculatin
 * Nonstandard sized options contracts (not 100:1 ratio) also aren't being stripped out properly messing up calculations.
 * Weird corporate events aren't being handled properly. I don't have code to handle these corner cases.
 
+## Example
+
+![Example usage](https://github.com/gnelabs/EpithyDivvyCheck/blob/main/example/screenshot.jpg?raw=true)

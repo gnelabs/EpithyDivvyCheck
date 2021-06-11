@@ -68,8 +68,6 @@ significantly.
 
 * Nonstandard underlyings with symbols in them like share classes (i.e. BRK/B) don't seem to show up properly despite attempting to strip these out.
 These tend to show up as unrealistically generous yields because it's calculating off an unusual dividend not tracked with options.
-* Nonstandard sized options contracts (not 100:1 ratio) also aren't being stripped out properly messing up calculations.
-* Weird corporate events aren't being handled properly. I don't have code to handle these corner cases.
 
 ## Example
 

@@ -9,6 +9,7 @@ FX_LATEST (currency converion list from tradeable divvies) = 500 per call
 import requests
 import pickle
 import logging
+import re
 from pathlib import Path
 from typing import Callable, Generator
 from os import getcwd, path
@@ -359,9 +360,22 @@ class OptionsData(object):
                 #Kick out nonstandard sized contracts.
                 options_chain_standard_contract_size = []
                 for item in options_chain:
-                    if item['contract_size'] == 100:
-                        options_chain_standard_contract_size.append(item)
-                
+                    #Throw out nonstandard contract sizes, because these are usually no liquidity.
+                    if item['contract_size'] != 100:
+                        continue
+                    
+                    #Haven't seen anything other than standard, but throw it out if it's not standard.
+                    if item['expiration_type'] != 'standard':
+                        continue
+                    
+                    #Ugh, have to regex the symbol! Nonstandard or adjusted options tend to have numbers
+                    #after the ticker, but before the date. Dates follow the C standard '%Y%m%d' so throw
+                    #out any numbers that aren't.
+                    if len(list(filter(None, re.split('[A-Z]', item['symbol'])))[0]) != 6:
+                        continue
+                    
+                    options_chain_standard_contract_size.append(item)
+                    
                 options_data[expiration] = options_chain_standard_contract_size
             
             all_data[k]['options_data'] = options_data
@@ -564,5 +578,5 @@ if __name__ == '__main__':
         print('Profitable long conversion arbitrage trades using dividends:')
         print(columnar(free_money, headers_sym, no_borders=True, patterns=[]))
     else:
-        print('There are no current arbetrage opportunities.')
+        print('There are no current arbitrage opportunities.')
     
